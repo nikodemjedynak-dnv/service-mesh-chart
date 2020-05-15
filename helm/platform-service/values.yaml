@@ -65,6 +65,8 @@ gateway:
 defaultRouting:
   # Generate default virtual services and destination rules
   enabled: true
+  # Load balancer policy
+  loadBalancerPolicy: RANDOM
   # Rewrite the routing prefix to the rewriteUri
   enableRewrite: true
   # Replace the routing prefix with this uri
