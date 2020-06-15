@@ -74,8 +74,8 @@ spec:
             httpGet:
               path: /healthz
               port: {{ .Values.image.containerPort }}
-            initialDelaySeconds: 5
-            periodSeconds: 5
+            initialDelaySeconds: {{ .Values.service.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.service.liveness.periodSeconds }}
           {{- end }}
           volumeMounts:
           {{- range .Values.volumes }}

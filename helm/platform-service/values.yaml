@@ -42,9 +42,11 @@ service:
   type:
   # port number - is required 15383
   port: 5000
-  # provide access to other services
+  # enable liveness probes
   liveness:
     enabled: false
+    initialDelaySeconds: 5
+    periodSeconds: 5
 
 serviceAccount:
   # Specifies whether a ServiceAccount should be created
