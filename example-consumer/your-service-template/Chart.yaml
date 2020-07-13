@@ -1,0 +1,4 @@
+apiVersion: v1
+name: your-service-template
+description: Customize this description for your package
+version: 0.0.1

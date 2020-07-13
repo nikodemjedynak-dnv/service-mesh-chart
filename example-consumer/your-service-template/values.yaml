@@ -1,0 +1,11 @@
+platform-service:
+  app: # put your workload name here
+  version: v1
+
+  image:
+    repository: #{registryname}.azurecr.io/{container-image-name}
+    containerPort: 80
+
+  defaultRouting:
+    hosts:
+      #- {your-domain}.dnvgl.com
