@@ -1,0 +1,95 @@
+app: test
+version: v1
+
+image:
+  registry: test.io
+  repository: some/repository
+  pullPolicy: IfNotPresent
+  tag: latest
+  containerPort: 80
+
+service:
+  port: 8000
+  liveness:
+    enabled: false
+    timeoutSeconds: 5
+    periodSeconds: 10
+
+gateway:
+  exposeService: false
+
+defaultRouting:
+  allHosts: false
+
+  retries:
+    enabled: false
+    settings:
+      attempts: 3
+
+health:
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 80
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3      
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 80
+    successThreshold: 3
+  startupProbe:
+    httpGet:
+      path: /health/startup
+      port: 80
+    failureThreshold: 30
+    periodSeconds: 10
+
+  # env:
+  #   baseLevel: only set at base
+  #   definedInBaseAndDuplicatedInOverride: sharedValue
+  #   definedInBaseAndOverridden: "baseValue"
+  #   definedInBaseAndOverriddenValue: 
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: base-secret
+  #         key: username
+  #   onlyDefinedInBaseValue: 
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: base-secret
+  #         key: username
+
+  # volumes:
+  #   - name: service-secrets
+  #     mountPath: "/secrets"
+  #     volumeDefinition: |
+  #       secret:
+  #         secretName: test-secrets
+
+  # Specify network and authorization policies
+
+  # Enable default network policy (set false and create your own if needed)
+  networkPolicy:
+    enabled: true
+
+    # List of workloads allowed access to this workload
+    appsAllowedAccess:
+      # App identifier for workload
+      - sleep
+  authorizationPolicy:
+    authorizedServices:
+      - servicePrincipalFullName: "cluster.local/ns/myns/sa/sleep"
+        requireJwt: false
+      - servicePrincipalName: httpbin
+  requestAuthentication:
+    jwtRules:
+      - issuer: "https://login.microsoftonline.com/a68572e3-63ce-4bc1-acdc-b64943502e9d/v2.0/"
+        jwksUri: "https://login.microsoftonline.com/te/dnvglb2cprod.onmicrosoft.com/b2c_1a_signinwithadfsidp/discovery/v2.0/keys"
+        audiences: ["fe494c14-85d2-4bfa-bb43-92b0ab0a4f72"]
+        forwardOriginalToken: true
+      # - issuer: "https://login.microsoftonline.com/a12372e3-63ce-4bc1-acdc-b64943502e9d/v2.0/"
+      #   jwksUri: "https://login.microsoftonline.com/te/dnvglb2cprod.onmicrosoft.com/b2c_1a_signinwithadfsidp/discovery/v2.0/keys"
+      #   audience: ["22b9c23f-4a41-4729-8a5d-793f7601dfdb"]
