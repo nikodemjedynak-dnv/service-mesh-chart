@@ -25,6 +25,8 @@ metadata:
   name: test-external
 spec:
   hosts:
+  - "mysubdomain1.mydomain.com"
+  - "mysubdomain2.mydomain.com"
   gateways:
   - gateway/one-gateway
   http:

@@ -22,6 +22,10 @@ defaultRouting:
   enabled: true
   allHosts: false
 
+  hosts:
+    - mysubdomain1.mydomain.com
+    - mysubdomain2.mydomain.com
+
   urlPrefixes:
     - prefix1
     - prefix2
