@@ -10,9 +10,11 @@ spec:
   gateways:
   - mesh
   http:
-  - route:
-    - destination:
-        host: "test"
+  - name: "test-internal-route"
+    route:
+      - destination:
+          host: "test"
+
     retries:
       attempts: 3
 ---
@@ -27,25 +29,27 @@ spec:
   - gateway/one-gateway
   http:
   # redirect on prefixes without trailing slashes
-  - match:
+  - name: "test-noslash-prefix1-route"
+    match:
     - uri:
         exact: /prefix1
     redirect:
       uri: /prefix1/
-  - match:
+  - name: "test-noslash-prefix2-route"
+    match:
     - uri:
         exact: /prefix2
     redirect:
       uri: /prefix2/
-  # routes to service
-  - route:
-    - destination:
-        host: "test"
+  - name: "test-prefix-match-routes"
     match:
     - uri:
         prefix: /prefix1/
     - uri:
         prefix: /prefix2/
+    route:
+    - destination:
+        host: "test"
     rewrite:
       uri: /
     # deprecated

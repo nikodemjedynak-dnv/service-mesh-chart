@@ -10,9 +10,10 @@ spec:
   gateways:
   - mesh
   http:
-  - route:
-    - destination:
-        host: "test"
+  - name: "test-internal-route"
+    route:
+      - destination:
+          host: "test"
 ---
 # Source: platform-service/templates/virtualservice.yaml
 apiVersion: networking.istio.io/v1alpha3
@@ -25,18 +26,19 @@ spec:
   - gateway/one-gateway
   http:
   # redirect on prefixes without trailing slashes
-  - match:
+  - name: "test-noslash-test-route"
+    match:
     - uri:
         exact: /test
     redirect:
       uri: /test/
-  # routes to service
-  - route:
-    - destination:
-        host: "test"
+  - name: "test-prefix-match-routes"
     match:
     - uri:
         prefix: /test/
+    route:
+    - destination:
+        host: "test"
     rewrite:
       uri: /
     # deprecated

@@ -207,6 +207,7 @@ spec:
   gateways:
   - mesh
   http:
-  - route:
-    - destination:
-        host: "test"
+  - name: "test-internal-route"
+    route:
+      - destination:
+          host: "test"

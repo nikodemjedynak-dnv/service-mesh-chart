@@ -1,17 +1,7 @@
-{{- define "retries" -}}
-{{- if .Values.defaultRouting.retries.enabled }}
-    retries:
-{{- if .Values.defaultRouting.retries.settings }}
-{{ .Values.defaultRouting.retries.settings | toYaml | trim | indent 6 }}
-{{- else }}
-      attempts: 3
-      perTryTimeout: 2s
-{{- end -}}
-{{- end -}}
-{{- end -}}
 {{- if not .Values.deploymentOnly -}}
 {{- if .Values.defaultRouting.enabled}}
 {{- $fullName := include "platform-service.fullname" . -}}
+{{- $app := .Values.app }}
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
@@ -22,13 +12,12 @@ spec:
   gateways:
   - mesh
   http:
-  - route:
-    - destination:
-        host: {{ include "platform-service.serviceName" . | quote }}
-{{- include "retries" . }}
+  - name: "{{ $app }}-internal-route"
+    route:
+{{ include "virtualservice.destination" . | indent 6 }}
+{{ include "virtualservice.handleRetries" . }}
 
 {{- if .Values.gateway.exposeService }}
-
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -42,64 +31,55 @@ spec:
   {{- range .Values.defaultRouting.hosts }}
   - {{ . | quote }}
   {{- end }}
+  {{- /* Also include deprecatedHosts so we can redirect traffic */ -}}
+  {{- range .Values.defaultRouting.deprecatedHostsWhichRedirectTraffic }}
+  - {{ . | quote }}
+  {{- end }}
 {{- end }}
   gateways:
   - {{ required "A valid .Values.gateway.name entry required!" .Values.gateway.name }}
 {{- $prefixes := default (list .Values.app) .Values.defaultRouting.urlPrefixes }}
   http:
 {{- if .Values.defaultRouting.urlExactMatches }}
-  - match:
+  - name: "{{ $app }}-exact-match-routes"
+    match:
   {{- range .Values.defaultRouting.urlExactMatches }}
-  {{- if hasPrefix "/" . }}
-    {{ fail "url matches must not include leading slash"}}
-  {{- end}}
+  {{- include "virtualservice.guardAgainstLeadingSlashInMatch" . }}
   {{- $slashMatch := printf "/%s" . }}
     - uri:
         exact: {{ $slashMatch }}
     - uri:
         prefix: {{ $slashMatch }}/
   {{- end }}
-  # routes to service
-    route:
-    - destination:
-        host: {{ include "platform-service.serviceName" . | quote }}
-{{- if .Values.defaultRouting.corsPolicy }}
-    corsPolicy:
-{{ .Values.defaultRouting.corsPolicy | toYaml | trim | indent 6 }}
-{{- end }}
+{{ include "virtualservice.route" .  | indent 4 }}
 {{- end }}
 
 {{- if .Values.defaultRouting.redirectOnNoTrailingSlash }}
   # redirect on prefixes without trailing slashes
   {{- range $prefixes }}
   {{- $slashPrefix := printf "/%s" . }}
-  - match:
+  - name: "{{ $app }}-noslash-{{ . }}-route"
+    match:
     - uri:
         exact: {{ $slashPrefix }}
     redirect:
       uri: {{ $slashPrefix }}/
   {{- end}}
 {{- end}}
-  # routes to service
-  - route:
-    - destination:
-        host: {{ include "platform-service.serviceName" . | quote }}
-{{- if .Values.defaultRouting.corsPolicy }}
-    corsPolicy:
-{{ .Values.defaultRouting.corsPolicy | toYaml | trim | indent 6 }}
-{{- end -}}
-
   {{- if not .Values.defaultRouting.catchAll }}
+  - name: "{{ $app }}-prefix-match-routes"
     match:
     {{- range $prefixes }}
-    {{- if hasPrefix "/" . }}
-      {{ fail "url prefixes must not include leading slash"}}
-    {{- end}}
+    {{- include "virtualservice.guardAgainstLeadingSlashInMatch" . }}
     {{- $slashPrefix := printf "/%s" . }}
     - uri:
         prefix: {{ $slashPrefix }}/
     {{- end }}
+  {{- else }}
+  - name: "{{ $app }}-call-all-route"
   {{- end }}
+{{ include "virtualservice.route" . | indent 4 }}
+
 {{- if .Values.defaultRouting.rewriteUrlPrefix.enabled }}
     rewrite:
       uri: {{ required "rewriteUri is required" .Values.defaultRouting.rewriteUrlPrefix.replaceWith }}
@@ -109,7 +89,7 @@ spec:
       request:
         add:
           x-appname: {{ first $prefixes }}
-{{- include "retries" . }}
+{{- include "virtualservice.handleRetries" . }}
 {{- end}}
 {{- end}}
 {{- end}}
