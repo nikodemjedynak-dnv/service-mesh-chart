@@ -79,6 +79,11 @@ defaultRouting:
   # hosts to take into account for routing rules (ignored if allHosts = true)
   hosts:
     []
+    #- myhost.dnv.com
+
+  # traffic routed to these hosts will be redirected to the first host in the hosts list
+  deprecatedHostsWhichRedirect: 
+    []
     #- myhost.dnvgl.com
 
   # list of prefixes for route matching - overrides the default prefix (app)

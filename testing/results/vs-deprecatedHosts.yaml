@@ -1,0 +1,66 @@
+---
+# Source: platform-service/templates/virtualservice.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: test
+spec:
+  hosts:
+  - test
+  gateways:
+  - mesh
+  http:
+  - name: "test-internal-route"
+    route:
+      - destination:
+          host: "test"
+---
+# Source: platform-service/templates/virtualservice.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: test-external
+spec:
+  hosts:
+  - "mysubdomain1.mydomain.com"
+  - "mysubdomain2.mydomain.com"
+  - "subdomain1.olddomain.com"
+  gateways:
+  - gateway/one-gateway
+  http:
+  # redirect deprecated host routes
+  - name: "test-redirect-deprecated-host-routes"
+    match:
+      - authority:
+        exact: "subdomain1.olddomain.com"
+    redirect:
+      authority: "mysubdomain1.mydomain.com"
+  # redirect on prefixes without trailing slashes
+  - name: "test-noslash-prefix1-route"
+    match:
+    - uri:
+        exact: /prefix1
+    redirect:
+      uri: /prefix1/
+  - name: "test-noslash-prefix2-route"
+    match:
+    - uri:
+        exact: /prefix2
+    redirect:
+      uri: /prefix2/
+  - name: "test-prefix-match-routes"
+    match:
+    - uri:
+        prefix: /prefix1/
+    - uri:
+        prefix: /prefix2/
+    route:
+    - destination:
+        host: "test"
+    rewrite:
+      uri: /
+    # deprecated
+    headers:
+      request:
+        add:
+          x-appname: prefix1

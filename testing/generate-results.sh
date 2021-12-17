@@ -49,3 +49,10 @@ helm template test-release ../charts/platform-service -f values.yaml \
     --set defaultRouting.urlExactMatches[0]="url1",defaultRouting.urlExactMatches[0]="url2" \
     --show-only templates/virtualservice.yaml \
     > results/vs-exact-matches.yaml
+
+helm template test-release ../charts/platform-service -f values.yaml \
+    --set defaultRouting.deprecatedHostsWhichRedirect[0]="subdomain1.olddomain.com" \
+    --show-only templates/virtualservice.yaml \
+    > results/vs-deprecatedHosts.yaml
+
+kubeval --ignore-missing-schemas results/*.yaml
