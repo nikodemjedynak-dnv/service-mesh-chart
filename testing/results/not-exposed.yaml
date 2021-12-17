@@ -22,13 +22,6 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          istio: ingressgateway
-      namespaceSelector:
-        matchLabels:
-          istio-operator-managed: Reconcile
-  - from:
-    - podSelector:
-        matchLabels:
           app: consumer
     ports:
     - protocol: TCP
@@ -217,41 +210,3 @@ spec:
   - route:
     - destination:
         host: "test"
----
-# Source: platform-service/templates/virtualservice.yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: test-external
-spec:
-  hosts:
-  gateways:
-  - gateway/one-gateway
-  http:
-  # redirect on prefixes without trailing slashes
-  - match:
-    - uri:
-        exact: /prefix1
-    redirect:
-      uri: /prefix1/
-  - match:
-    - uri:
-        exact: /prefix2
-    redirect:
-      uri: /prefix2/
-  # routes to service
-  - route:
-    - destination:
-        host: "test"
-    match:
-    - uri:
-        prefix: /prefix1/
-    - uri:
-        prefix: /prefix2/
-    rewrite:
-      uri: /
-    # deprecated
-    headers:
-      request:
-        add:
-          x-appname: prefix1

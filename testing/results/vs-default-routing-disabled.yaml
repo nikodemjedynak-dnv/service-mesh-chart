@@ -173,19 +173,6 @@ spec:
         namespaces: ["istio-system"]
         requestPrincipals: ["*"]
 ---
-# Source: platform-service/templates/destinationrules.yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: DestinationRule
-metadata:
-  name: test-release-destinationrule
-spec:
-  host: test
-  trafficPolicy:
-    loadBalancer:
-      simple: RANDOM
-    tls:
-      mode: ISTIO_MUTUAL
----
 # Source: platform-service/templates/requestAuthentication.yaml
 apiVersion: security.istio.io/v1beta1
 kind: RequestAuthentication
@@ -202,56 +189,3 @@ spec:
     forwardOriginalToken: true
     issuer: https://login.microsoftonline.com/abcd/v2.0/
     jwksUri: https://jwksuri/discovery/v2.0/keys
----
-# Source: platform-service/templates/virtualservice.yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: test
-spec:
-  hosts:
-  - test
-  gateways:
-  - mesh
-  http:
-  - route:
-    - destination:
-        host: "test"
----
-# Source: platform-service/templates/virtualservice.yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: test-external
-spec:
-  hosts:
-  gateways:
-  - gateway/one-gateway
-  http:
-  # redirect on prefixes without trailing slashes
-  - match:
-    - uri:
-        exact: /prefix1
-    redirect:
-      uri: /prefix1/
-  - match:
-    - uri:
-        exact: /prefix2
-    redirect:
-      uri: /prefix2/
-  # routes to service
-  - route:
-    - destination:
-        host: "test"
-    match:
-    - uri:
-        prefix: /prefix1/
-    - uri:
-        prefix: /prefix2/
-    rewrite:
-      uri: /
-    # deprecated
-    headers:
-      request:
-        add:
-          x-appname: prefix1
