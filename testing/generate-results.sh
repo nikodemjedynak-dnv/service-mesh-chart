@@ -52,7 +52,7 @@ helm template test-release ../charts/platform-service -n test-ns -f values.yaml 
     > results/vs-exact-matches.yaml
 
 helm template test-release ../charts/platform-service -n test-ns -f values.yaml \
-    --set defaultRouting.deprecatedHostsWhichRedirect[0]="subdomain1.olddomain.com" \
+    --set defaultRouting.deprecatedHostsToRedirect[0]="subdomain1.olddomain.com" \
     --show-only templates/virtualservice.yaml \
     > results/vs-deprecatedHosts.yaml
 

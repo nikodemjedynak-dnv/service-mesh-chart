@@ -32,7 +32,7 @@ spec:
   - {{ . | quote }}
   {{- end }}
   {{- /* Also include deprecatedHosts so we can redirect traffic */ -}}
-  {{- range .Values.defaultRouting.deprecatedHostsWhichRedirect }}
+  {{- range .Values.defaultRouting.deprecatedHostsToRedirect }}
   - {{ . | quote }}
   {{- end }}
 {{- end }}
@@ -40,12 +40,12 @@ spec:
   - {{ required "A valid .Values.gateway.name entry required!" .Values.gateway.name }}
 {{- $prefixes := default (list .Values.app) .Values.defaultRouting.urlPrefixes }}
   http:
-{{- if .Values.defaultRouting.deprecatedHostsWhichRedirect}}
+{{- if .Values.defaultRouting.deprecatedHostsToRedirect}}
   # redirect deprecated host routes
 {{- $newHost := .Values.defaultRouting.hosts | first | quote }}
   - name: "{{ $app }}-redirect-deprecated-host-routes"
     match:
-{{- range .Values.defaultRouting.deprecatedHostsWhichRedirect}}
+{{- range .Values.defaultRouting.deprecatedHostsToRedirect}}
       - authority:
         exact: {{ . | quote }}
 {{- end }}
