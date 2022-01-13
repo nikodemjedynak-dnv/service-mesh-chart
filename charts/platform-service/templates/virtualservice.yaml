@@ -47,7 +47,7 @@ spec:
     match:
 {{- range .Values.defaultRouting.deprecatedHostsToRedirect}}
       - authority:
-        exact: {{ . | quote }}
+          exact: {{ . | quote }}
 {{- end }}
     redirect:
       authority: {{ $newHost }}
