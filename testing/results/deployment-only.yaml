@@ -139,7 +139,7 @@ spec:
         principals: ["cluster.local/ns/myns/sa/consumersp"]
   - from:
     - source:
-        principals: ["cluster.local/ns/iecforesight-dev/sa/testsp"]
+        principals: ["cluster.local/ns/test-ns/sa/testsp"]
         requestPrincipals: ["*"]
   - from:
     - source:
