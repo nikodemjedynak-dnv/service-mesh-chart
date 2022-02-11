@@ -29,3 +29,18 @@ corsPolicy:
 {{ .Values.defaultRouting.corsPolicy | toYaml | trim | indent 2 }}
 {{- end }}
 {{- end -}}
+
+{{- define "virtualservice.urlExactMatches" -}}
+{{- if .Values.defaultRouting.urlExactMatches }}
+    match:
+  {{- range .Values.defaultRouting.urlExactMatches }}
+  {{- include "virtualservice.guardAgainstLeadingSlashInMatch" . }}
+  {{- $slashMatch := printf "/%s" . }}
+    - uri:
+        exact: {{ $slashMatch }}
+    - uri:
+        prefix: {{ $slashMatch }}/
+  {{- end }}
+{{ include "virtualservice.route" .  | indent 4 }}
+{{- end }}
+{{- end -}}

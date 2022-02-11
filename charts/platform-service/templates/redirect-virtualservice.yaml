@@ -1,0 +1,45 @@
+{{- if not .Values.deploymentOnly -}}
+{{- if .Values.defaultRouting.enabled}}
+{{- if .Values.defaultRouting.deprecatedHostsToRedirect -}}
+{{- if .Values.gateway.exposeService }}
+{{- $app := .Values.app }}
+{{- $newHost := .Values.defaultRouting.hosts | first | quote }}
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ include "platform-service.serviceName" . }}-redirect
+spec:
+  hosts:
+  {{- range .Values.defaultRouting.deprecatedHostsToRedirect }}
+  - {{ . | quote }}
+  {{- end }}
+  gateways:
+  - {{ required "A valid .Values.gateway.name entry required!" .Values.gateway.name }}
+{{- $prefixes := default (list .Values.app) .Values.defaultRouting.urlPrefixes }}
+  http:
+{{- if .Values.defaultRouting.urlExactMatches }}
+  - name: "{{ $app }}-exact-match-routes"
+{{ include "virtualservice.urlExactMatches" .  | indent 4 }}
+    redirect:
+      authority: {{ $newHost }}
+{{- end }}
+  {{- if not .Values.defaultRouting.catchAll }}
+  - name: "{{ $app }}-prefix-match-routes"
+    match:
+    {{- range $prefixes }}
+    {{- include "virtualservice.guardAgainstLeadingSlashInMatch" . }}
+    {{- $slashPrefix := printf "/%s" . }}
+    - uri:
+        prefix: {{ $slashPrefix }}/
+    {{- end }}
+  {{- else }}
+  - name: "{{ $app }}-call-all-route"
+  {{- end }}
+    redirect:
+      authority: {{ $newHost }}
+{{- end}}
+{{- end}}
+{{- end}}
+{{- end}}

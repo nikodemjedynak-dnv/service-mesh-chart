@@ -14,6 +14,9 @@ spec:
     route:
       - destination:
           host: "test"
+
+    retries:
+      attempts: 3
 ---
 # Source: platform-service/templates/virtualservice.yaml
 apiVersion: networking.istio.io/v1alpha3
@@ -56,6 +59,8 @@ spec:
       request:
         add:
           x-appname: prefix1
+    retries:
+      attempts: 3
 ---
 # Source: platform-service/templates/redirect-virtualservice.yaml
 apiVersion: networking.istio.io/v1alpha3

@@ -22,9 +22,23 @@ helm template test-release ../charts/platform-service -n test-ns -f values.yaml 
     > results/vs-with-retries.yaml
 
 helm template test-release ../charts/platform-service -n test-ns -f values.yaml \
+    --set defaultRouting.deprecatedHostsToRedirect[0]="subdomain1.olddomain.com" \
+    --set defaultRouting.retries.enabled=true \
+    --show-only templates/virtualservice.yaml \
+    --show-only templates/redirect-virtualservice.yaml \
+    > results/vs-redirect-with-retries.yaml
+
+helm template test-release ../charts/platform-service -n test-ns -f values.yaml \
     --set defaultRouting.allHosts=true \
     --show-only templates/virtualservice.yaml \
     > results/vs-all-hosts.yaml
+
+helm template test-release ../charts/platform-service -n test-ns -f values.yaml \
+    --set defaultRouting.deprecatedHostsToRedirect[0]="subdomain1.olddomain.com" \
+    --set defaultRouting.allHosts=true \
+    --show-only templates/virtualservice.yaml \
+    --show-only templates/redirect-virtualservice.yaml \
+    > results/vs-redirect-all-hosts.yaml
 
 helm template test-release ../charts/platform-service -n test-ns -f values.yaml \
     --set defaultRouting.urlPrefixes= \
@@ -54,6 +68,14 @@ helm template test-release ../charts/platform-service -n test-ns -f values.yaml 
 helm template test-release ../charts/platform-service -n test-ns -f values.yaml \
     --set defaultRouting.deprecatedHostsToRedirect[0]="subdomain1.olddomain.com" \
     --show-only templates/virtualservice.yaml \
+    --show-only templates/redirect-virtualservice.yaml \
     > results/vs-deprecatedHosts.yaml
 
+echo " *** kubeval results ***"
 kubeval --ignore-missing-schemas results/*.yaml
+echo " *** istioctl validation results ***"
+for f in $(ls results/*.yaml);
+do
+  echo istioctl validating $f;
+  cat $f | istioctl validate -f -
+done;
